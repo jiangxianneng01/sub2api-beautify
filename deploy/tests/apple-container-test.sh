@@ -31,6 +31,9 @@ export FAKE_CONTAINER_STATE="${STATE_DIR}"
 export PATH="${TEST_DIR}/fixtures/bin:${PATH}"
 export SUB2API_ENV_FILE="${ENV_FILE}"
 
+# Keep the test independent of checkout/archive tools that may drop executable bits.
+chmod +x "${SCRIPT}" "${TEST_DIR}/fixtures/bin/container" "${TEST_DIR}/fixtures/bin/curl"
+
 mkdir -p "${STATE_DIR}"
 
 "${SCRIPT}" init
