@@ -1,0 +1,20 @@
+jlapi.xyz {
+    encode zstd gzip
+    reverse_proxy sub2api:8080
+}
+
+pool.jlapi.xyz {
+    encode zstd gzip
+    reverse_proxy cli-proxy-api:8317
+}
+
+newapi.jlapi.xyz {
+    encode zstd gzip
+    reverse_proxy new-api:3000
+}
+
+# --- Direct IP access over plain HTTP, no port number required ---
+http://64.83.19.239 {
+	encode zstd gzip
+	reverse_proxy sub2api:8080
+}

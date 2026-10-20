@@ -1,0 +1,35 @@
+jlapi.xyz {
+handle /jl-as/* {
+root * /data
+file_server
+header {
+Cache-Control "public, max-age=3600"
+Content-Disposition inline
+}
+}
+
+handle {
+encode zstd gzip
+reverse_proxy sub2api:8080
+}
+}
+
+pool.jlapi.xyz {
+encode zstd gzip
+reverse_proxy cli-proxy-api:8317
+}
+
+newapi.jlapi.xyz {
+encode zstd gzip
+reverse_proxy new-api:3000
+}
+
+api.jlapi.xyz {
+encode zstd gzip
+reverse_proxy sub2api:8080
+}
+
+clewdr.jlapi.xyz {
+encode zstd gzip
+reverse_proxy clewdr:8484
+}

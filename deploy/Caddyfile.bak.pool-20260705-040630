@@ -1,0 +1,4 @@
+jlapi.xyz {
+    encode zstd gzip
+    reverse_proxy sub2api:8080
+}

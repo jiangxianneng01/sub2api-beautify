@@ -1,0 +1,327 @@
+diff --git a/backend/internal/service/account_test_service.go b/backend/internal/service/account_test_service.go
+index 2100331..b9edbef 100644
+--- a/backend/internal/service/account_test_service.go
++++ b/backend/internal/service/account_test_service.go
+@@ -82,6 +82,45 @@ func firstAccountTestOptions(opts []AccountTestOptions) AccountTestOptions {
+ // maxAccountTestMediaBytes caps inbound data-URL payloads for admin tests (~8 MiB).
+ const maxAccountTestMediaBytes = 8 << 20
+ 
++// accountTestTextPromptContextKey carries the admin-supplied test message.
++const accountTestTextPromptContextKey = "account_test_text_prompt"
++
++// defaultAccountTestTextPrompt is what text probes send when no message is given.
++const defaultAccountTestTextPrompt = "hi"
++
++// maxAccountTestTextPromptRunes caps the test message: a probe checks that the account answers,
++// it is not a place for long documents (which would also cost real tokens on every test).
++const maxAccountTestTextPromptRunes = 4000
++
++// clampTestTextPrompt trims the message and cuts it to maxAccountTestTextPromptRunes.
++func clampTestTextPrompt(prompt string) string {
++	text := strings.TrimSpace(prompt)
++	if runes := []rune(text); len(runes) > maxAccountTestTextPromptRunes {
++		text = strings.TrimSpace(string(runes[:maxAccountTestTextPromptRunes]))
++	}
++	return text
++}
++
++// accountTestTextPrompt returns the message a text probe should send.
++func accountTestTextPrompt(c *gin.Context) string {
++	if c != nil {
++		if prompt := clampTestTextPrompt(c.GetString(accountTestTextPromptContextKey)); prompt != "" {
++			return prompt
++		}
++	}
++	return defaultAccountTestTextPrompt
++}
++
++// pickTestTextPrompt returns the first non-empty prompt, or the default.
++func pickTestTextPrompt(prompt []string) string {
++	for _, p := range prompt {
++		if text := clampTestTextPrompt(p); text != "" {
++			return text
++		}
++	}
++	return defaultAccountTestTextPrompt
++}
++
+ const (
+ 	defaultGeminiTextTestPrompt  = "hi"
+ 	defaultGeminiImageTestPrompt = "Generate a cute orange cat astronaut sticker on a clean pastel background."
+@@ -312,8 +351,9 @@ func generateSessionString() (string, error) {
+ 	return FormatMetadataUserID(hex64, "", sessionUUID, uaVersion), nil
+ }
+ 
+-// createTestPayload creates a Claude Code style test request payload
+-func createTestPayload(modelID string) (map[string]any, error) {
++// createTestPayload creates a Claude Code style test request payload.
++// prompt is optional; empty sends "hi".
++func createTestPayload(modelID string, prompt ...string) (map[string]any, error) {
+ 	sessionID, err := generateSessionString()
+ 	if err != nil {
+ 		return nil, err
+@@ -327,7 +367,7 @@ func createTestPayload(modelID string) (map[string]any, error) {
+ 				"content": []map[string]any{
+ 					{
+ 						"type": "text",
+-						"text": "hi",
++						"text": pickTestTextPrompt(prompt),
+ 						"cache_control": map[string]string{
+ 							"type": "ephemeral",
+ 						},
+@@ -362,6 +402,9 @@ func (s *AccountTestService) TestAccountConnection(c *gin.Context, accountID int
+ 	initAccountTestLogger(c, accountID, modelID, mode)
+ 	ctx := c.Request.Context()
+ 	testOpts := firstAccountTestOptions(opts)
++	// Text probes that build their own payload (Claude, Bedrock, OpenAI Responses,
++	// adaptive CN endpoints) read the admin's message from here; empty keeps "hi".
++	c.Set(accountTestTextPromptContextKey, strings.TrimSpace(prompt))
+ 
+ 	// Get account
+ 	account, err := s.accountRepo.GetByID(ctx, accountID)
+@@ -560,7 +603,7 @@ func (s *AccountTestService) testClaudeAccountConnection(c *gin.Context, account
+ 	c.Writer.Flush()
+ 
+ 	// Create Claude Code style payload (same for all account types)
+-	payload, err := createTestPayload(testModelID)
++	payload, err := createTestPayload(testModelID, accountTestTextPrompt(c))
+ 	if err != nil {
+ 		return s.sendErrorAndEnd(c, "Failed to create test payload")
+ 	}
+@@ -638,7 +681,7 @@ func (s *AccountTestService) testClaudeVertexServiceAccountConnection(c *gin.Con
+ 	c.Writer.Header().Set("X-Accel-Buffering", "no")
+ 	c.Writer.Flush()
+ 
+-	payload, err := createTestPayload(testModelID)
++	payload, err := createTestPayload(testModelID, accountTestTextPrompt(c))
+ 	if err != nil {
+ 		return s.sendErrorAndEnd(c, "Failed to create test payload")
+ 	}
+@@ -718,7 +761,7 @@ func (s *AccountTestService) testBedrockAccountConnection(c *gin.Context, ctx co
+ 				"content": []map[string]any{
+ 					{
+ 						"type": "text",
+-						"text": "hi",
++						"text": accountTestTextPrompt(c),
+ 					},
+ 				},
+ 			},
+@@ -890,7 +933,7 @@ func (s *AccountTestService) testOpenAIAccountConnection(c *gin.Context, account
+ 	if isOAuth {
+ 		upstreamTestModelID = normalizeOpenAIModelForUpstream(credentialAccount, testModelID)
+ 	}
+-	payload := createOpenAITestPayload(upstreamTestModelID, isOAuth)
++	payload := createOpenAITestPayload(upstreamTestModelID, isOAuth, accountTestTextPrompt(c))
+ 	payloadBytes, _ := json.Marshal(payload)
+ 
+ 	// Send test_start event once. A task-invalid Agent Identity response may
+@@ -2773,8 +2816,9 @@ func (s *AccountTestService) processGeminiStream(c *gin.Context, body io.Reader)
+ 	}
+ }
+ 
+-// createOpenAITestPayload creates a test payload for OpenAI Responses API
+-func createOpenAITestPayload(modelID string, isOAuth bool) map[string]any {
++// createOpenAITestPayload creates a test payload for OpenAI Responses API.
++// prompt is optional; empty sends "hi".
++func createOpenAITestPayload(modelID string, isOAuth bool, prompt ...string) map[string]any {
+ 	payload := map[string]any{
+ 		"model": modelID,
+ 		"input": []map[string]any{
+@@ -2783,7 +2827,7 @@ func createOpenAITestPayload(modelID string, isOAuth bool) map[string]any {
+ 				"content": []map[string]any{
+ 					{
+ 						"type": "input_text",
+-						"text": "hi",
++						"text": pickTestTextPrompt(prompt),
+ 					},
+ 				},
+ 			},
+diff --git a/backend/internal/service/account_test_service_cn_adaptive.go b/backend/internal/service/account_test_service_cn_adaptive.go
+index 1ac31be..c7d00f2 100644
+--- a/backend/internal/service/account_test_service_cn_adaptive.go
++++ b/backend/internal/service/account_test_service_cn_adaptive.go
+@@ -70,7 +70,7 @@ func (s *AccountTestService) testCNProviderAdaptiveAnthropicConnection(c *gin.Co
+ 	}
+ 	apiURL := strings.TrimRight(baseURL, "/") + "/v1/messages"
+ 
+-	payload, err := createTestPayload(testModelID)
++	payload, err := createTestPayload(testModelID, accountTestTextPrompt(c))
+ 	if err != nil {
+ 		return s.sendErrorAndEnd(c, "Failed to create adaptive Anthropic test payload")
+ 	}
+@@ -169,7 +169,7 @@ func (s *AccountTestService) testCNProviderAdaptiveResponsesConnection(c *gin.Co
+ 	}
+ 	apiURL := buildOpenAIResponsesURLForPlatform(account.Platform, baseURL)
+ 
+-	payload := createOpenAITestPayload(testModelID, false)
++	payload := createOpenAITestPayload(testModelID, false, accountTestTextPrompt(c))
+ 	// DeepSeek / Kimi native Responses endpoints are stateless and do not need
+ 	// the OpenAI probe's synthetic instructions.
+ 	delete(payload, "instructions")
+@@ -255,7 +255,7 @@ func (s *AccountTestService) testCNProviderAnthropicConnection(c *gin.Context, a
+ 	c.Writer.Header().Set("X-Accel-Buffering", "no")
+ 	c.Writer.Flush()
+ 
+-	payload, err := createTestPayload(testModelID)
++	payload, err := createTestPayload(testModelID, accountTestTextPrompt(c))
+ 	if err != nil {
+ 		return s.sendErrorAndEnd(c, "Failed to create Anthropic test payload")
+ 	}
+diff --git a/backend/internal/service/account_test_service_text_prompt_test.go b/backend/internal/service/account_test_service_text_prompt_test.go
+new file mode 100644
+index 0000000..7309486
+--- /dev/null
++++ b/backend/internal/service/account_test_service_text_prompt_test.go
+@@ -0,0 +1,92 @@
++package service
++
++import (
++	"net/http/httptest"
++	"strings"
++	"testing"
++
++	"github.com/gin-gonic/gin"
++)
++
++func firstClaudeTestText(t *testing.T, payload map[string]any) string {
++	t.Helper()
++	messages, ok := payload["messages"].([]map[string]any)
++	if !ok || len(messages) == 0 {
++		t.Fatalf("payload has no messages: %#v", payload["messages"])
++	}
++	content, ok := messages[0]["content"].([]map[string]any)
++	if !ok || len(content) == 0 {
++		t.Fatalf("message has no content: %#v", messages[0]["content"])
++	}
++	text, _ := content[0]["text"].(string)
++	return text
++}
++
++func firstOpenAITestText(t *testing.T, payload map[string]any) string {
++	t.Helper()
++	input, ok := payload["input"].([]map[string]any)
++	if !ok || len(input) == 0 {
++		t.Fatalf("payload has no input: %#v", payload["input"])
++	}
++	content, ok := input[0]["content"].([]map[string]any)
++	if !ok || len(content) == 0 {
++		t.Fatalf("input has no content: %#v", input[0]["content"])
++	}
++	text, _ := content[0]["text"].(string)
++	return text
++}
++
++func TestCreateTestPayloadTextPrompt(t *testing.T) {
++	payload, err := createTestPayload("claude-sonnet-4-6")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if got := firstClaudeTestText(t, payload); got != "hi" {
++		t.Fatalf("default prompt = %q, want hi", got)
++	}
++
++	payload, err = createTestPayload("claude-sonnet-4-6", "  Introduce yourself  ")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if got := firstClaudeTestText(t, payload); got != "Introduce yourself" {
++		t.Fatalf("custom prompt = %q", got)
++	}
++}
++
++func TestCreateOpenAITestPayloadTextPrompt(t *testing.T) {
++	if got := firstOpenAITestText(t, createOpenAITestPayload("gpt-5.5", true)); got != "hi" {
++		t.Fatalf("default prompt = %q, want hi", got)
++	}
++	if got := firstOpenAITestText(t, createOpenAITestPayload("gpt-5.5", false, "", " 1+1? ")); got != "1+1?" {
++		t.Fatalf("custom prompt = %q", got)
++	}
++}
++
++func TestAccountTestTextPromptFromContext(t *testing.T) {
++	gin.SetMode(gin.TestMode)
++	if got := accountTestTextPrompt(nil); got != "hi" {
++		t.Fatalf("nil context = %q, want hi", got)
++	}
++	c, _ := gin.CreateTestContext(httptest.NewRecorder())
++	if got := accountTestTextPrompt(c); got != "hi" {
++		t.Fatalf("unset = %q, want hi", got)
++	}
++	c.Set(accountTestTextPromptContextKey, "  ping  ")
++	if got := accountTestTextPrompt(c); got != "ping" {
++		t.Fatalf("set = %q, want ping", got)
++	}
++}
++
++func TestAccountTestTextPromptIsCapped(t *testing.T) {
++	long := strings.Repeat("测", maxAccountTestTextPromptRunes+50)
++	if got := []rune(pickTestTextPrompt([]string{long})); len(got) != maxAccountTestTextPromptRunes {
++		t.Fatalf("capped length = %d, want %d", len(got), maxAccountTestTextPromptRunes)
++	}
++	gin.SetMode(gin.TestMode)
++	c, _ := gin.CreateTestContext(httptest.NewRecorder())
++	c.Set(accountTestTextPromptContextKey, long)
++	if got := []rune(accountTestTextPrompt(c)); len(got) != maxAccountTestTextPromptRunes {
++		t.Fatalf("context capped length = %d, want %d", len(got), maxAccountTestTextPromptRunes)
++	}
++}
+diff --git a/backend/internal/service/api_key_service.go b/backend/internal/service/api_key_service.go
+index e20a269..b9b386e 100644
+--- a/backend/internal/service/api_key_service.go
++++ b/backend/internal/service/api_key_service.go
+@@ -17,6 +17,7 @@ import (
+ 	"github.com/Wei-Shaw/sub2api/internal/config"
+ 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
+ 	"github.com/Wei-Shaw/sub2api/internal/pkg/ip"
++	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
+ 	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
+ 	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
+ 	"github.com/dgraph-io/ristretto"
+@@ -1186,7 +1187,9 @@ func (s *APIKeyService) UpdateQuotaUsed(ctx context.Context, apiKeyID int64, cos
+ 	// Check if quota is now exhausted and update status if needed
+ 	apiKey, err := s.apiKeyRepo.GetByID(ctx, apiKeyID)
+ 	if err != nil {
+-		return nil // Don't fail the request, just log
++		// Don't fail the request, but leave a trace: the key's exhausted status may now lag
++		logger.LegacyPrintf("service.api_key", "quota: reload api key %d after charging %.6f failed: %v", apiKeyID, cost, err)
++		return nil
+ 	}
+ 
+ 	// If quota is set and now exhausted, update status
+@@ -1195,7 +1198,9 @@ func (s *APIKeyService) UpdateQuotaUsed(ctx context.Context, apiKeyID int64, cos
+ 		// 只写 status：这条位于计费热路径，若整行回写会把刚刚原子递增的
+ 		// quota_used 与限流用量按快照覆盖掉。
+ 		if err := s.apiKeyRepo.Update(ctx, apiKey, APIKeyUpdateFields{Status: true}); err != nil {
+-			return nil // Don't fail the request
++			// Don't fail the request; the key keeps working until its status is written
++			logger.LegacyPrintf("service.api_key", "quota: marking api key %d exhausted failed: %v", apiKeyID, err)
++			return nil
+ 		}
+ 		// Invalidate cache so next request sees the new status
+ 		s.InvalidateAuthCacheByKey(ctx, apiKey.Key)
+diff --git a/backend/internal/web/embed_on.go b/backend/internal/web/embed_on.go
+index d16b1c4..2ae6763 100644
+--- a/backend/internal/web/embed_on.go
++++ b/backend/internal/web/embed_on.go
+@@ -173,7 +173,9 @@ func (s *FrontendServer) serveIndexHTML(c *gin.Context) {
+ 	settings, err := s.settings.GetPublicSettingsForInjection(ctx)
+ 	if err != nil {
+ 		// Fallback: serve without injection
+-		c.Data(http.StatusOK, "text/html; charset=utf-8", s.baseHTML)
++		// still fill in the CSP nonce, so the page's own inline scripts (the loading screen) may run
++		c.Header("Cache-Control", "no-cache")
++		c.Data(http.StatusOK, "text/html; charset=utf-8", replaceNoncePlaceholder(s.baseHTML, nonce))
+ 		c.Abort()
+ 		return
+ 	}
+@@ -181,7 +183,9 @@ func (s *FrontendServer) serveIndexHTML(c *gin.Context) {
+ 	settingsJSON, err := json.Marshal(settings)
+ 	if err != nil {
+ 		// Fallback: serve without injection
+-		c.Data(http.StatusOK, "text/html; charset=utf-8", s.baseHTML)
++		// still fill in the CSP nonce, so the page's own inline scripts (the loading screen) may run
++		c.Header("Cache-Control", "no-cache")
++		c.Data(http.StatusOK, "text/html; charset=utf-8", replaceNoncePlaceholder(s.baseHTML, nonce))
+ 		c.Abort()
+ 		return
+ 	}

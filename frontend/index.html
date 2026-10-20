@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN" class="dark" data-palette="noir">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070604" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#070604" media="(prefers-color-scheme: dark)" />
+    <title>JLAi - AI API Gateway</title>
+    <script nonce="__CSP_NONCE_VALUE__">
+      // the saved appearance, before the first paint: a light-mode visitor gets no dark flash
+      // (same keys and defaults as useAppearance; the app applies them again when it starts)
+      (function () {
+        try {
+          var root = document.documentElement
+          var mode = localStorage.getItem('theme')
+          var dark = mode === 'system'
+            ? !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+            : mode !== 'light'
+          root.classList.toggle('dark', dark)
+          var palette = localStorage.getItem('palette')
+          if (palette && /^[a-z]+$/.test(palette)) root.setAttribute('data-palette', palette)
+          if (localStorage.getItem('motion') === 'reduced') root.setAttribute('data-motion', 'reduced')
+        } catch (e) {
+          // storage blocked: the dark default stays
+        }
+      })()
+    </script>
+    <style>
+      /* loading screen: shown until the app mounts (it replaces the contents of #app) */
+      /* dark until the app applies the saved theme; scoped to .dark so light mode never keeps it */
+      html.dark { background: #070604; }
+      .boot { background: #070604; position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; font: 14px/1.6 system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #f4f1ec; }
+      .boot-logo { width: 56px; height: 56px; border-radius: 16px; animation: boot-pulse 1.6s ease-in-out infinite; }
+      .boot-bar { position: relative; width: 120px; height: 2px; overflow: hidden; border-radius: 2px; background: rgba(255, 217, 120, 0.16); }
+      .boot-bar::after { content: ''; position: absolute; top: 0; bottom: 0; width: 40%; border-radius: 2px; background: linear-gradient(90deg, transparent, #ffd978, transparent); animation: boot-slide 1.1s ease-in-out infinite; }
+      .boot-msg { display: none; max-width: 340px; padding: 0 20px; text-align: center; color: rgba(244, 241, 236, 0.78); }
+      .boot-msg button { margin-top: 14px; padding: 8px 20px; border: 0; border-radius: 10px; font: inherit; font-weight: 600; color: #1a1204; background: #ffd978; cursor: pointer; }
+      html:not(.dark) { background: #f7f6f3; }
+      html:not(.dark) .boot { background: #f7f6f3; color: #2b2520; }
+      html:not(.dark) .boot-bar { background: rgba(160, 110, 20, 0.16); }
+      html:not(.dark) .boot-bar::after { background: linear-gradient(90deg, transparent, #c98a12, transparent); }
+      html:not(.dark) .boot-msg { color: rgba(43, 37, 32, 0.78); }
+      html[data-motion='reduced'] .boot-logo, html[data-motion='reduced'] .boot-bar::after { animation: none; }
+      @keyframes boot-pulse { 50% { opacity: 0.55; transform: scale(0.96); } }
+      @keyframes boot-slide { from { left: -40%; } to { left: 100%; } }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="boot">
+        <img class="boot-logo" src="/logo.svg" alt="" />
+        <div class="boot-bar" id="boot-bar"></div>
+        <div class="boot-msg" id="boot-msg">
+          <div id="boot-msg-text"></div>
+          <button type="button" id="boot-reload">刷新页面</button>
+        </div>
+      </div>
+    </div>
+    <script nonce="__CSP_NONCE_VALUE__">
+      // If the app cannot start (an old browser that cannot run it, a file that failed to load, or an
+      // old copy of the page asking for files that are gone) say so, instead of a page that hangs.
+      (function () {
+        var shown = false
+        var text = {
+          old: '当前浏览器版本过旧，无法运行本站。请升级到最新版 Chrome、Edge 或 Firefox 后再访问。',
+          load: '页面文件加载失败，可能是网络不稳定，或浏览器还缓存着旧版本。请刷新重试；仍不行时按 Ctrl + Shift + R 强制刷新。',
+          slow: '页面加载时间较长。可以刷新重试；如果一直如此，请按 Ctrl + Shift + R 强制刷新，或换用最新版浏览器。'
+        }
+        function show(kind) {
+          if (shown || window.__APP_MOUNTED__) return
+          var box = document.getElementById('boot-msg')
+          if (!box) return
+          shown = true
+          document.getElementById('boot-msg-text').textContent = text[kind]
+          box.style.display = 'block'
+          var bar = document.getElementById('boot-bar')
+          if (bar) bar.style.display = 'none'
+        }
+        var reload = document.getElementById('boot-reload')
+        if (reload) reload.addEventListener('click', function () { window.location.reload() })
+        window.addEventListener('error', function (e) {
+          var target = e && e.target
+          if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) show('load')
+          else if (e && e.error && e.error.name === 'SyntaxError') show('old')
+        }, true)
+        if (!('noModule' in document.createElement('script'))) show('old')
+        setTimeout(function () { show('slow') }, 15000)
+      })()
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

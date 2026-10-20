@@ -1,0 +1,399 @@
+/* ==========================================================================
+   Colour palettes
+   Every colour Tailwind knows as primary / accent / gray / dark / paper / ink /
+   signal reads from these variables (see tailwind.config.js), so switching
+   `data-palette` on <html> re-skins the whole app — light and dark — at once.
+
+   Values are space-separated sRGB channels so Tailwind's opacity modifiers work
+   (`bg-primary-500/10`). The non-default palettes were derived in OKLCH from
+   Ember's lightness ladder, so contrast steps line up across palettes; 600 is the
+   button colour and holds ≥ 4.6:1 against white text in every palette.
+   --c-on-primary is the label colour on a filled primary button (dark on gold).
+
+   noir    黑金  warm near-black + amber gold (default, matched to the reference console)
+   ember   余烬  coral + gold on warm umber
+   aurora  极光  teal + mint on cool slate
+   nebula  星云  violet + pink on indigo-black
+   quantum 量子  electric blue + cyan on graphite
+   matrix  矩阵  emerald + lime on green-black
+   crimson 绯红  rose-red + amber on neutral charcoal
+   ========================================================================== */
+
+/* 黑金 (default): warm near-black with amber gold, matched to the reference console */
+:root,
+[data-palette='noir'] {
+  --c-primary-50: 255 249 235;
+  --c-primary-100: 254 240 204;
+  --c-primary-200: 252 223 151;
+  --c-primary-300: 248 203 98;
+  --c-primary-400: 240 181 58;
+  --c-primary-500: 227 155 22;
+  --c-primary-600: 154 96 6;
+  --c-primary-700: 126 78 7;
+  --c-primary-800: 102 64 11;
+  --c-primary-900: 84 53 13;
+  --c-primary-950: 46 28 4;
+  --c-accent-50: 255 245 236;
+  --c-accent-100: 255 231 209;
+  --c-accent-200: 255 203 160;
+  --c-accent-300: 255 168 102;
+  --c-accent-400: 246 138 60;
+  --c-accent-500: 237 115 32;
+  --c-accent-600: 201 88 15;
+  --c-accent-700: 162 68 15;
+  --c-accent-800: 130 56 18;
+  --c-accent-900: 106 47 18;
+  --c-accent-950: 58 22 6;
+  --c-gray-50: 250 250 248;
+  --c-gray-100: 243 242 239;
+  --c-gray-200: 231 229 225;
+  --c-gray-300: 212 209 203;
+  --c-gray-400: 169 164 157;
+  --c-gray-500: 114 109 102;
+  --c-gray-600: 92 87 81;
+  --c-gray-700: 70 66 61;
+  --c-gray-800: 46 43 40;
+  --c-gray-900: 30 28 26;
+  --c-gray-950: 18 17 16;
+  --c-dark-50: 248 246 243;
+  --c-dark-100: 238 234 229;
+  --c-dark-200: 218 212 205;
+  --c-dark-300: 191 184 176;
+  --c-dark-400: 156 149 141;
+  --c-dark-500: 110 104 97;
+  --c-dark-600: 58 54 49;
+  --c-dark-700: 38 35 31;
+  --c-dark-800: 26 24 20;
+  --c-dark-850: 19 17 13;
+  --c-dark-900: 14 12 9;
+  --c-dark-950: 7 6 4;
+  --c-paper: 247 246 243;
+  --c-ink: 20 18 16;
+  --signal-a: 255 217 120;
+  --signal-b: 242 169 59;
+  --signal-c: 234 122 51;
+  /* text on primary buttons: gold is light, so the label is dark */
+  --c-on-primary: 26 18 4;
+}
+
+:root:not([data-palette='noir']) {
+  --c-on-primary: 255 255 255;
+}
+
+[data-palette='ember'] {
+  --c-primary-50: 255 244 238;
+  --c-primary-100: 255 229 217;
+  --c-primary-200: 255 200 176;
+  --c-primary-300: 253 162 127;
+  --c-primary-400: 247 123 80;
+  --c-primary-500: 232 90 44;
+  --c-primary-600: 200 68 27;
+  --c-primary-700: 166 55 21;
+  --c-primary-800: 134 46 21;
+  --c-primary-900: 109 40 20;
+  --c-primary-950: 59 17 7;
+  --c-accent-50: 255 248 236;
+  --c-accent-100: 255 239 207;
+  --c-accent-200: 255 221 158;
+  --c-accent-300: 255 200 106;
+  --c-accent-400: 255 181 71;
+  --c-accent-500: 245 154 31;
+  --c-accent-600: 217 124 14;
+  --c-accent-700: 180 96 13;
+  --c-accent-800: 146 75 18;
+  --c-accent-900: 120 62 18;
+  --c-accent-950: 69 31 5;
+  --c-gray-50: 250 248 246;
+  --c-gray-100: 243 240 236;
+  --c-gray-200: 233 228 222;
+  --c-gray-300: 215 208 200;
+  --c-gray-400: 173 164 154;
+  --c-gray-500: 116 106 97;
+  --c-gray-600: 94 85 77;
+  --c-gray-700: 71 63 57;
+  --c-gray-800: 47 41 37;
+  --c-gray-900: 31 26 23;
+  --c-gray-950: 19 16 14;
+  --c-dark-50: 247 244 241;
+  --c-dark-100: 237 231 225;
+  --c-dark-200: 217 208 199;
+  --c-dark-300: 189 177 166;
+  --c-dark-400: 163 151 140;
+  --c-dark-500: 122 111 101;
+  --c-dark-600: 84 75 68;
+  --c-dark-700: 59 52 48;
+  --c-dark-800: 42 36 32;
+  --c-dark-850: 34 29 26;
+  --c-dark-900: 27 23 20;
+  --c-dark-950: 17 14 12;
+  --c-paper: 247 245 242;
+  --c-ink: 28 23 20;
+  --signal-a: 255 181 71;
+  --signal-b: 255 106 61;
+  --signal-c: 229 72 127;
+}
+
+[data-palette='aurora'] {
+  --c-primary-50: 239 249 249;
+  --c-primary-100: 218 240 241;
+  --c-primary-200: 175 225 227;
+  --c-primary-300: 116 205 210;
+  --c-primary-400: 26 186 193;
+  --c-primary-500: 0 162 169;
+  --c-primary-600: 0 130 136;
+  --c-primary-700: 0 107 111;
+  --c-primary-800: 0 91 95;
+  --c-primary-900: 0 75 78;
+  --c-primary-950: 0 38 40;
+  --c-accent-50: 239 253 246;
+  --c-accent-100: 216 250 234;
+  --c-accent-200: 174 244 212;
+  --c-accent-300: 128 235 191;
+  --c-accent-400: 93 226 175;
+  --c-accent-500: 46 207 154;
+  --c-accent-600: 0 177 128;
+  --c-accent-700: 0 143 103;
+  --c-accent-800: 0 115 82;
+  --c-accent-900: 0 95 67;
+  --c-accent-950: 0 52 35;
+  --c-gray-50: 246 249 250;
+  --c-gray-100: 236 241 244;
+  --c-gray-200: 223 230 234;
+  --c-gray-300: 201 211 216;
+  --c-gray-400: 155 168 174;
+  --c-gray-500: 97 110 117;
+  --c-gray-600: 77 89 95;
+  --c-gray-700: 57 66 71;
+  --c-gray-800: 37 44 47;
+  --c-gray-900: 23 28 31;
+  --c-gray-950: 14 17 19;
+  --c-dark-50: 241 245 247;
+  --c-dark-100: 225 234 238;
+  --c-dark-200: 200 212 218;
+  --c-dark-300: 166 182 190;
+  --c-dark-400: 140 156 164;
+  --c-dark-500: 101 116 123;
+  --c-dark-600: 68 79 84;
+  --c-dark-700: 47 55 59;
+  --c-dark-800: 32 39 42;
+  --c-dark-850: 26 31 34;
+  --c-dark-900: 20 25 27;
+  --c-dark-950: 12 15 17;
+  --c-paper: 242 246 248;
+  --c-ink: 20 25 28;
+  --signal-a: 124 245 214;
+  --signal-b: 34 211 238;
+  --signal-c: 124 156 255;
+}
+
+[data-palette='nebula'] {
+  --c-primary-50: 246 245 255;
+  --c-primary-100: 235 232 255;
+  --c-primary-200: 215 206 255;
+  --c-primary-300: 191 174 255;
+  --c-primary-400: 169 142 255;
+  --c-primary-500: 150 111 250;
+  --c-primary-600: 126 88 217;
+  --c-primary-700: 104 72 181;
+  --c-primary-800: 84 59 145;
+  --c-primary-900: 69 50 118;
+  --c-primary-950: 35 23 64;
+  --c-accent-50: 255 246 251;
+  --c-accent-100: 255 234 245;
+  --c-accent-200: 255 211 235;
+  --c-accent-300: 255 186 224;
+  --c-accent-400: 255 164 216;
+  --c-accent-500: 251 129 202;
+  --c-accent-600: 218 104 173;
+  --c-accent-700: 178 81 140;
+  --c-accent-800: 143 64 112;
+  --c-accent-900: 118 54 92;
+  --c-accent-950: 67 26 51;
+  --c-gray-50: 248 248 251;
+  --c-gray-100: 240 240 245;
+  --c-gray-200: 228 228 236;
+  --c-gray-300: 209 208 219;
+  --c-gray-400: 165 164 178;
+  --c-gray-500: 107 106 120;
+  --c-gray-600: 86 85 98;
+  --c-gray-700: 64 63 73;
+  --c-gray-800: 42 41 49;
+  --c-gray-900: 27 26 32;
+  --c-gray-950: 17 16 20;
+  --c-dark-50: 244 244 248;
+  --c-dark-100: 232 231 240;
+  --c-dark-200: 209 208 221;
+  --c-dark-300: 179 177 194;
+  --c-dark-400: 153 151 168;
+  --c-dark-500: 113 111 126;
+  --c-dark-600: 76 75 87;
+  --c-dark-700: 53 53 61;
+  --c-dark-800: 37 36 44;
+  --c-dark-850: 30 29 35;
+  --c-dark-900: 24 23 28;
+  --c-dark-950: 15 14 18;
+  --c-paper: 245 245 249;
+  --c-ink: 24 23 29;
+  --signal-a: 245 163 255;
+  --signal-b: 169 139 255;
+  --signal-c: 106 168 255;
+}
+
+[data-palette='quantum'] {
+  --c-primary-50: 242 247 255;
+  --c-primary-100: 224 236 255;
+  --c-primary-200: 190 216 255;
+  --c-primary-300: 148 190 255;
+  --c-primary-400: 105 164 255;
+  --c-primary-500: 62 138 255;
+  --c-primary-600: 43 114 222;
+  --c-primary-700: 34 94 184;
+  --c-primary-800: 29 76 148;
+  --c-primary-900: 27 63 120;
+  --c-primary-950: 9 31 66;
+  --c-accent-50: 239 251 255;
+  --c-accent-100: 218 246 255;
+  --c-accent-200: 177 237 255;
+  --c-accent-300: 125 227 255;
+  --c-accent-400: 73 217 253;
+  --c-accent-500: 0 198 235;
+  --c-accent-600: 0 168 200;
+  --c-accent-700: 0 135 162;
+  --c-accent-800: 0 108 130;
+  --c-accent-900: 0 89 108;
+  --c-accent-950: 0 49 60;
+  --c-gray-50: 247 249 251;
+  --c-gray-100: 238 241 245;
+  --c-gray-200: 224 229 236;
+  --c-gray-300: 203 210 219;
+  --c-gray-400: 158 166 177;
+  --c-gray-500: 101 109 120;
+  --c-gray-600: 80 88 97;
+  --c-gray-700: 59 65 73;
+  --c-gray-800: 38 43 48;
+  --c-gray-900: 24 27 32;
+  --c-gray-950: 15 17 20;
+  --c-dark-50: 242 245 248;
+  --c-dark-100: 227 233 240;
+  --c-dark-200: 203 210 221;
+  --c-dark-300: 170 180 193;
+  --c-dark-400: 144 154 167;
+  --c-dark-500: 105 114 126;
+  --c-dark-600: 71 78 87;
+  --c-dark-700: 49 54 60;
+  --c-dark-800: 33 38 43;
+  --c-dark-850: 27 30 35;
+  --c-dark-900: 21 24 28;
+  --c-dark-950: 13 15 18;
+  --c-paper: 243 246 249;
+  --c-ink: 21 24 29;
+  --signal-a: 110 231 255;
+  --signal-b: 77 141 255;
+  --signal-c: 124 108 255;
+}
+
+[data-palette='matrix'] {
+  --c-primary-50: 241 249 242;
+  --c-primary-100: 221 241 226;
+  --c-primary-200: 184 227 194;
+  --c-primary-300: 135 208 155;
+  --c-primary-400: 81 189 118;
+  --c-primary-500: 22 170 89;
+  --c-primary-600: 0 135 67;
+  --c-primary-700: 0 111 54;
+  --c-primary-800: 1 96 46;
+  --c-primary-900: 11 78 39;
+  --c-primary-950: 2 41 17;
+  --c-accent-50: 247 251 238;
+  --c-accent-100: 235 246 211;
+  --c-accent-200: 215 236 167;
+  --c-accent-300: 195 224 120;
+  --c-accent-400: 181 213 87;
+  --c-accent-500: 160 194 45;
+  --c-accent-600: 134 165 7;
+  --c-accent-700: 108 133 0;
+  --c-accent-800: 86 107 0;
+  --c-accent-900: 70 88 3;
+  --c-accent-950: 37 48 0;
+  --c-gray-50: 247 249 248;
+  --c-gray-100: 238 242 239;
+  --c-gray-200: 224 231 227;
+  --c-gray-300: 203 212 207;
+  --c-gray-400: 158 169 162;
+  --c-gray-500: 101 111 105;
+  --c-gray-600: 80 90 84;
+  --c-gray-700: 59 67 62;
+  --c-gray-800: 38 44 41;
+  --c-gray-900: 24 28 26;
+  --c-gray-950: 15 17 16;
+  --c-dark-50: 242 246 244;
+  --c-dark-100: 227 234 230;
+  --c-dark-200: 203 213 207;
+  --c-dark-300: 170 183 175;
+  --c-dark-400: 144 157 150;
+  --c-dark-500: 105 117 110;
+  --c-dark-600: 71 79 74;
+  --c-dark-700: 49 55 52;
+  --c-dark-800: 33 39 36;
+  --c-dark-850: 27 31 29;
+  --c-dark-900: 21 25 23;
+  --c-dark-950: 13 15 14;
+  --c-paper: 243 246 244;
+  --c-ink: 21 25 23;
+  --signal-a: 212 255 110;
+  --signal-b: 61 235 154;
+  --signal-c: 38 215 196;
+}
+
+[data-palette='crimson'] {
+  --c-primary-50: 255 243 244;
+  --c-primary-100: 255 227 229;
+  --c-primary-200: 255 197 201;
+  --c-primary-300: 255 156 165;
+  --c-primary-400: 254 110 130;
+  --c-primary-500: 238 74 104;
+  --c-primary-600: 205 52 84;
+  --c-primary-700: 170 42 68;
+  --c-primary-800: 137 36 56;
+  --c-primary-900: 112 33 47;
+  --c-primary-950: 61 13 21;
+  --c-accent-50: 255 247 242;
+  --c-accent-100: 255 237 225;
+  --c-accent-200: 255 217 193;
+  --c-accent-300: 255 196 156;
+  --c-accent-400: 255 177 124;
+  --c-accent-500: 254 147 63;
+  --c-accent-600: 220 121 37;
+  --c-accent-700: 180 96 21;
+  --c-accent-800: 145 76 16;
+  --c-accent-900: 119 63 16;
+  --c-accent-950: 68 32 3;
+  --c-gray-50: 250 248 248;
+  --c-gray-100: 243 240 240;
+  --c-gray-200: 232 227 228;
+  --c-gray-300: 214 207 208;
+  --c-gray-400: 172 163 164;
+  --c-gray-500: 114 106 106;
+  --c-gray-600: 92 85 85;
+  --c-gray-700: 69 63 63;
+  --c-gray-800: 45 41 41;
+  --c-gray-900: 30 26 26;
+  --c-gray-950: 18 16 16;
+  --c-dark-50: 246 244 244;
+  --c-dark-100: 236 231 231;
+  --c-dark-200: 215 207 208;
+  --c-dark-300: 186 177 177;
+  --c-dark-400: 160 151 151;
+  --c-dark-500: 120 111 111;
+  --c-dark-600: 82 75 75;
+  --c-dark-700: 57 52 52;
+  --c-dark-800: 40 36 36;
+  --c-dark-850: 33 29 29;
+  --c-dark-900: 26 23 23;
+  --c-dark-950: 16 14 14;
+  --c-paper: 247 245 245;
+  --c-ink: 27 23 23;
+  --signal-a: 255 194 122;
+  --signal-b: 255 92 122;
+  --signal-c: 228 107 255;
+}

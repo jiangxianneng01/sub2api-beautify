@@ -1,0 +1,19 @@
+jlapi.xyz {
+encode zstd gzip
+reverse_proxy sub2api:8080
+}
+
+pool.jlapi.xyz {
+encode zstd gzip
+reverse_proxy cli-proxy-api:8317
+}
+
+newapi.jlapi.xyz {
+encode zstd gzip
+reverse_proxy new-api:3000
+}
+
+api.jlapi.xyz {
+encode zstd gzip
+reverse_proxy sub2api:8080
+}

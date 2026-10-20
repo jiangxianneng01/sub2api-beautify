@@ -1,0 +1,51 @@
+jlapi.xyz {
+    encode zstd gzip
+    @api path /api /api/* /v1 /v1/* /v1beta /v1beta/* /backend-api /backend-api/* /antigravity /antigravity/* /setup /setup/* /health /responses /responses/* /images /images/*
+    @nonFrontend {
+        not method GET HEAD
+    }
+    @static path /assets/* /solar/* /logo.svg /favicon.ico /robots.txt
+    handle /jl-as/* {
+        root * /data
+        file_server
+        header {
+            Cache-Control "public, max-age=3600"
+            Content-Disposition inline
+        }
+    }
+    handle @api {
+        reverse_proxy sub2api:8080
+    }
+    handle @nonFrontend {
+        reverse_proxy sub2api:8080
+    }
+    handle {
+        root * /data/sub2api-ui/releases/ui-20261020T081900Z
+        header {
+            X-Content-Type-Options nosniff
+            X-Frame-Options DENY
+            Referrer-Policy strict-origin-when-cross-origin
+            Content-Security-Policy "default-src 'self'; worker-src 'self' blob:; script-src 'self' https://challenges.cloudflare.com https://*.alicdn.com https://static.cloudflareinsights.com https://turing.captcha.qcloud.com https://turing.captcha.gtimg.com https://ca.turing.captcha.qcloud.com https://global.turing.captcha.gtimg.com https://www.tycaptcha.com https://cloudcache.tencentcs.com https://*.stripe.com https://static.airwallex.com https://checkout.airwallex.com https://static-demo.airwallex.com https://checkout-demo.airwallex.com; style-src 'self' 'unsafe-inline' https://*.captcha.gtimg.com https://fonts.googleapis.com https://*.alicdn.com https://static.airwallex.com https://checkout.airwallex.com https://static-demo.airwallex.com https://checkout-demo.airwallex.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://turing.captcha.qcloud.com https://www.tycaptcha.com https://rce.tencentrio.com https:; frame-src 'self' https://challenges.cloudflare.com https://turing.captcha.qcloud.com https://ca.turing.captcha.qcloud.com https://www.tycaptcha.com https://*.stripe.com https://checkout.airwallex.com https://checkout-demo.airwallex.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        }
+        handle @static {
+            header Cache-Control "public, max-age=3600"
+            file_server
+        }
+        handle {
+            header Cache-Control "no-cache"
+            try_files {path} /index.html
+            file_server
+        }
+    }
+}
+
+pool.jlapi.xyz {
+encode zstd gzip
+reverse_proxy 172.18.0.1:17000
+}
+
+api.jlapi.xyz {
+    reverse_proxy basketikun-claude2api:8787 {
+        flush_interval -1
+    }
+}
