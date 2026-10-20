@@ -32,7 +32,7 @@ window.addEventListener('vite:preloadError', (event) => {
 
 /** Tell the loading screen in index.html that the app is up */
 function markMounted() {
-  ;(window as Window & { __APP_MOUNTED__?: boolean }).__APP_MOUNTED__ = true
+  (window as Window & { __APP_MOUNTED__?: boolean }).__APP_MOUNTED__ = true
   document.documentElement.classList.add('app-mounted')
 }
 
