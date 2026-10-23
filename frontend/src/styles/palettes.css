@@ -397,3 +397,78 @@
   --signal-b: 255 92 122;
   --signal-c: 228 107 255;
 }
+
+/* ==========================================================================
+   Light mode: hued neutrals
+   In dark mode every palette brings its own tinted near-blacks, so switching
+   palettes re-colours the whole console. Light mode used to share one grey
+   ladder, so only the buttons changed. Here gray-50…500 are re-hued toward each
+   palette's primary in OKLCH with the lightness kept — every border, hover,
+   table header, input and secondary button picks up the palette while text
+   contrast stays where it was (gray-500 on the light canvas stays above 4.6:1).
+   Generated from the palettes above (hue of primary-500; chroma 0.014 / 0.022 /
+   0.032 / 0.036 / 0.030 / 0.024 for steps 50…500); regenerate if those change.
+   ========================================================================== */
+
+html:not(.dark)[data-palette='noir'] {
+  --c-gray-50: 255 249 240;
+  --c-gray-100: 251 240 226;
+  --c-gray-200: 242 227 206;
+  --c-gray-300: 224 207 184;
+  --c-gray-400: 176 163 145;
+  --c-gray-500: 118 108 95;
+}
+
+html:not(.dark)[data-palette='ember'] {
+  --c-gray-50: 255 245 242;
+  --c-gray-100: 255 236 230;
+  --c-gray-200: 249 222 214;
+  --c-gray-300: 232 202 193;
+  --c-gray-400: 183 160 152;
+  --c-gray-500: 121 104 98;
+}
+
+html:not(.dark)[data-palette='aurora'] {
+  --c-gray-50: 238 252 252;
+  --c-gray-100: 224 245 246;
+  --c-gray-200: 205 236 237;
+  --c-gray-300: 183 217 219;
+  --c-gray-400: 145 172 173;
+  --c-gray-500: 92 112 113;
+}
+
+html:not(.dark)[data-palette='nebula'] {
+  --c-gray-50: 248 247 255;
+  --c-gray-100: 241 238 255;
+  --c-gray-200: 229 225 249;
+  --c-gray-300: 210 206 232;
+  --c-gray-400: 166 163 183;
+  --c-gray-500: 108 105 121;
+}
+
+html:not(.dark)[data-palette='quantum'] {
+  --c-gray-50: 243 249 255;
+  --c-gray-100: 232 242 255;
+  --c-gray-200: 216 230 251;
+  --c-gray-300: 195 210 234;
+  --c-gray-400: 154 166 185;
+  --c-gray-500: 100 109 123;
+}
+
+html:not(.dark)[data-palette='matrix'] {
+  --c-gray-50: 242 251 244;
+  --c-gray-100: 231 245 234;
+  --c-gray-200: 214 236 219;
+  --c-gray-300: 193 217 198;
+  --c-gray-400: 153 172 157;
+  --c-gray-500: 98 112 101;
+}
+
+html:not(.dark)[data-palette='crimson'] {
+  --c-gray-50: 255 245 246;
+  --c-gray-100: 255 235 236;
+  --c-gray-200: 249 220 222;
+  --c-gray-300: 232 200 202;
+  --c-gray-400: 184 158 160;
+  --c-gray-500: 122 103 104;
+}

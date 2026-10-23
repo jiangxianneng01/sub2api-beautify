@@ -243,6 +243,7 @@ import StudioSkills from '@/components/studio/StudioSkills.vue'
 import { useStudioSources, platformColor } from '@/composables/useStudioSources'
 import { appendPhrase, removePhrase } from '@/data/studioSkills'
 import { generateImages, StudioError, type ImageResult } from '@/api/studio'
+import { toOpenableUrl } from '@/utils/objectUrl'
 
 const { t } = useI18n()
 const sources = useStudioSources('image')
@@ -336,6 +337,18 @@ let abort: AbortController | null = null
 let timer: ReturnType<typeof setInterval> | null = null
 let startedAt = 0
 
+// Finished images are kept as blob: URLs, not the data: URLs the gateway sends back:
+// browsers refuse to open a data: URL in a new tab, so "Open" showed a blank page.
+const ownedUrls = new Set<string>()
+function keepImage(src: string): string {
+  const { url, owned } = toOpenableUrl(src)
+  if (owned) ownedUrls.add(url)
+  return url
+}
+function releaseImage(src: string) {
+  if (ownedUrls.delete(src)) URL.revokeObjectURL(src)
+}
+
 const canGenerate = computed(() => busy.value || (!!selectedKey.value && !!model.value && prompt.value.trim().length > 0))
 const showActions = computed(() => !!current.value && !current.value.partial && !busy.value)
 const elapsedText = computed(() => `${(elapsed.value / 1000).toFixed(1)}s`)
@@ -404,8 +417,10 @@ async function generate() {
         },
         onCompleted: (result) => {
           finished += 1
-          const item: GalleryItem = { ...result, id: ++seq, prompt: runPrompt, model: runModel, at: Date.now() }
-          gallery.value = [item, ...gallery.value].slice(0, 24)
+          const item: GalleryItem = { ...result, src: keepImage(result.src), id: ++seq, prompt: runPrompt, model: runModel, at: Date.now() }
+          const takes = [item, ...gallery.value]
+          takes.slice(24).forEach((dropped) => releaseImage(dropped.src))
+          gallery.value = takes.slice(0, 24)
           current.value = item
           progress.value = Math.max(progress.value, finished / count.value)
           log(t('studio.log.done', { index: finished, total: count.value }))
@@ -438,6 +453,7 @@ function cancel() {
 }
 
 function clearGallery() {
+  gallery.value.forEach((item) => releaseImage(item.src))
   gallery.value = []
   current.value = null
 }
@@ -458,5 +474,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', onDocClick)
   abort?.abort()
   if (timer) clearInterval(timer)
+  ownedUrls.forEach((url) => URL.revokeObjectURL(url))
+  ownedUrls.clear()
 })
 </script>

@@ -2136,16 +2136,31 @@ html[data-motion='reduced'].sheet-recede .sidebar {
 }
 
 /* Light mode carries the palette too. Dark mode changes a lot between palettes (the near-blacks
-   themselves are tinted); in light mode only buttons used to change, so the page, the sidebar,
-   the header, hairlines and panels now take a wash of the palette's own hue. */
+   themselves are tinted); light mode used to keep white panels on one shared grey, so switching
+   palettes barely showed. Now the palette is visible everywhere in light mode:
+   - the neutrals (borders, hovers, inputs, table headers, secondary buttons) are re-hued per
+     palette — see "Light mode: hued neutrals" at the end of styles/palettes.css;
+   - the canvas is a clear wash of the palette's light tone, panels carry a tint, coloured
+     hairlines and coloured shadows;
+   - the sidebar is washed in the palette and the current page is a filled pill in the primary
+     colour, the same fill as the primary button.
+   Text keeps its contrast: the re-hued greys keep their lightness. */
 html:not(.dark) {
-  --hairline: rgb(var(--c-primary-200) / 0.6);
-  --hairline-strong: rgb(var(--c-primary-300) / 0.75);
+  --hairline: rgb(var(--c-primary-300) / 0.5);
+  --hairline-strong: rgb(var(--c-primary-400) / 0.65);
+  --shadow-card: 0 1px 2px rgb(var(--c-primary-900) / 0.06), 0 10px 24px -14px rgb(var(--c-primary-700) / 0.3);
+  --shadow-card-hover: 0 2px 4px rgb(var(--c-primary-900) / 0.07), 0 22px 40px -18px rgb(var(--c-primary-700) / 0.45);
+  --shadow-pop: 0 0 0 1px rgb(var(--c-primary-900) / 0.07), 0 26px 60px -22px rgb(var(--c-primary-900) / 0.42);
+  --spot-strength: 0.1;
+  /* the palette's light tone: the page canvas, and a fainter one for panels */
+  --l-canvas: color-mix(in oklab, rgb(var(--c-primary-100)) 62%, #fff);
+  --l-panel: color-mix(in oklab, rgb(var(--c-primary-50)) 50%, #fff);
+  --l-raised: color-mix(in oklab, rgb(var(--c-primary-100)) 50%, #fff);
 }
 
 html:not(.dark) .app-shell {
   isolation: isolate;
-  background-color: color-mix(in srgb, rgb(var(--c-primary-50)) 55%, rgb(var(--c-gray-50)));
+  background-color: var(--l-canvas);
 }
 
 /* the wash stays put while the page scrolls; a fixed layer, not background-attachment: fixed,
@@ -2157,37 +2172,121 @@ html:not(.dark) .app-shell::before {
   z-index: -1;
   pointer-events: none;
   background-image:
-    radial-gradient(64rem 34rem at 0% -8%, rgb(var(--c-primary-200) / 0.5), transparent 62%),
-    radial-gradient(56rem 32rem at 100% 0%, rgb(var(--c-accent-200) / 0.38), transparent 60%),
-    radial-gradient(80rem 44rem at 60% 115%, rgb(var(--c-primary-100) / 0.7), transparent 62%);
+    radial-gradient(60rem 34rem at 0% -10%, rgb(var(--c-primary-200) / 0.85), transparent 62%),
+    radial-gradient(52rem 30rem at 100% -4%, rgb(var(--c-accent-200) / 0.7), transparent 60%),
+    radial-gradient(72rem 40rem at 70% 112%, rgb(var(--c-primary-200) / 0.6), transparent 62%);
 }
 
+/* ---- sidebar: washed in the palette, the current page filled with the primary colour ---- */
 html:not(.dark) .sidebar {
-  background-color: color-mix(in srgb, rgb(var(--c-primary-50)) 72%, rgb(255 255 255 / 0.92));
+  background-color: color-mix(in oklab, rgb(var(--c-primary-100)) 55%, rgb(255 255 255 / 0.9));
   background-image:
-    radial-gradient(130% 42% at 0% 0%, rgb(var(--c-primary-200) / 0.6), transparent 64%),
-    radial-gradient(120% 40% at 100% 100%, rgb(var(--c-accent-100) / 0.7), transparent 60%);
-  border-right-color: rgb(var(--c-primary-200) / 0.7);
+    linear-gradient(180deg, rgb(var(--c-primary-200) / 0.6), transparent 40%),
+    radial-gradient(120% 40% at 100% 100%, rgb(var(--c-accent-200) / 0.6), transparent 62%);
+  border-color: rgb(var(--c-primary-300) / 0.55);
+}
+
+html:not(.dark) .sidebar-group-title,
+html:not(.dark) .sidebar-section-title {
+  color: rgb(var(--c-primary-800) / 0.62);
+}
+
+html:not(.dark) .sidebar-link {
+  color: rgb(var(--c-primary-950) / 0.74);
+}
+
+html:not(.dark) .sidebar-link > svg,
+html:not(.dark) .sidebar-link > .sidebar-svg-icon {
+  color: rgb(var(--c-primary-700) / 0.6);
+}
+
+html:not(.dark) .sidebar-link:hover {
+  background-color: rgb(var(--c-primary-200) / 0.45);
+  color: rgb(var(--c-primary-950));
+}
+
+html:not(.dark) .sidebar-link:hover > svg,
+html:not(.dark) .sidebar-link:hover > .sidebar-svg-icon {
+  color: rgb(var(--c-primary-700));
 }
 
 html:not(.dark) .sidebar-link-active,
 html:not(.dark) .sidebar-link-active:hover {
-  background-color: transparent;
-  background-image: linear-gradient(90deg, rgb(var(--c-primary-500) / 0.2), rgb(var(--c-primary-500) / 0.05));
-  box-shadow: inset 0 0 0 1px rgb(var(--c-primary-500) / 0.2);
-  color: rgb(var(--c-primary-900));
+  color: #fff;
+  background-color: rgb(var(--c-primary-600));
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 60%),
+    linear-gradient(90deg, rgb(var(--c-primary-600)), rgb(var(--c-primary-700)));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 8px 18px -10px rgb(var(--c-primary-600) / 0.8);
 }
 
+/* 黑金: gold is light, so the pill uses the bright end of the scale with a dark label, like the button */
+html:not(.dark)[data-palette='noir'] .sidebar-link-active,
+html:not(.dark)[data-palette='noir'] .sidebar-link-active:hover {
+  color: rgb(var(--c-on-primary));
+  background-color: rgb(var(--c-primary-400));
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0) 60%),
+    linear-gradient(90deg, rgb(var(--c-primary-300)), rgb(var(--c-primary-400)) 50%, rgb(var(--c-primary-500)));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 8px 18px -10px rgb(var(--c-primary-500) / 0.85);
+}
+
+html:not(.dark) .sidebar-link-active > svg,
+html:not(.dark) .sidebar-link-active > .sidebar-svg-icon,
+html:not(.dark) .sidebar-link-active:hover > svg,
+html:not(.dark) .sidebar-link-active:hover > .sidebar-svg-icon {
+  color: currentColor;
+}
+
+/* on the filled pill the signal rail turns into a quiet notch in the label colour */
+html:not(.dark) .sidebar-link-active::before {
+  background: currentColor;
+  box-shadow: none;
+  opacity: 0.55;
+}
+
+/* ---- header and panels ---- */
 html:not(.dark) .app-header {
-  background: color-mix(in srgb, rgb(var(--c-primary-50)) 60%, rgb(255 255 255 / 0.78));
-  border-color: rgb(var(--c-primary-200) / 0.7);
+  background: color-mix(in oklab, rgb(var(--c-primary-100)) 50%, rgb(255 255 255 / 0.72));
+}
+
+html:not(.dark) .card,
+html:not(.dark) .table-container {
+  background-color: var(--l-panel);
 }
 
 html:not(.dark) .card {
-  --sheen: linear-gradient(180deg, rgb(var(--c-primary-50) / 0.75), rgb(255 255 255 / 0) 9rem);
+  --sheen: linear-gradient(180deg, rgb(var(--c-primary-100) / 0.75), rgb(var(--c-primary-100) / 0) 7rem);
 }
 
 html:not(.dark) .page-heading-title {
   color: rgb(var(--c-primary-950));
 }
 
+/* ---- tables: a header band in the palette, rows light up in it ---- */
+html:not(.dark) .table th,
+html:not(.dark) .table-wrapper .table-header,
+html:not(.dark) .sticky-header-cell {
+  background-color: var(--l-raised);
+}
+
+html:not(.dark) .table th {
+  color: rgb(var(--c-primary-900) / 0.72);
+  border-bottom-color: rgb(var(--c-primary-200));
+}
+
+html:not(.dark) .table tbody tr:hover {
+  background-color: rgb(var(--c-primary-100) / 0.55);
+}
+
+/* ---- segmented tabs ---- */
+html:not(.dark) .tab-active {
+  color: rgb(var(--c-primary-900));
+  box-shadow:
+    0 1px 2px rgb(var(--c-primary-900) / 0.1),
+    0 0 0 1px rgb(var(--c-primary-300) / 0.5);
+}

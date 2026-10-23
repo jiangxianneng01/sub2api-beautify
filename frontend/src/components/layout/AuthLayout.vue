@@ -1,8 +1,8 @@
 <template>
   <!--
-    Sign-in and its siblings always appear as a dialog. Reached from a public page,
-    the dialog pops up over that page (it stays rendered underneath); opened directly,
-    it floats over the night sky instead.
+    Sign-in and its siblings are a full-screen page: the dialog card floats beside the
+    quantum core (night sky without WebGL 2). The popup variant, drawn over the page it
+    was opened from, only appears when AUTH_POPUP_ENABLED is on in router/authOverlay.ts.
   -->
   <div
     ref="rootRef"
@@ -87,7 +87,7 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import { useAppStore } from '@/stores'
 import { sanitizeUrl } from '@/utils/url'
-import { closeAuthOverlay, isAuthOverlay } from '@/router/authOverlay'
+import { closeAuthOverlay, isAuthOverlay, leaveAuthPage } from '@/router/authOverlay'
 import { motionAllowed } from '@/composables/useAppearance'
 
 const { t } = useI18n()
@@ -135,12 +135,13 @@ function setUnderlayInert(on: boolean) {
   }
 }
 
-// Closing returns to the page underneath (popup, after a short exit) or to the landing page
+// Closing returns to the page underneath (popup, after a short exit); the full page steps
+// back to the public page it was opened from, or goes to the landing page
 const closing = ref(false)
 function close() {
   if (closing.value) return
   if (!overlay.value) {
-    void router.push('/home')
+    void leaveAuthPage(router)
     return
   }
   if (!motionAllowed()) {

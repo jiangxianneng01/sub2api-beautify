@@ -790,7 +790,7 @@ const router = createRouter({
   }
 })
 
-// Sign-in routes open as a popup over the public page they were reached from
+// Sign-in routes are full pages; the popup mode is switched off in authOverlay.ts (AUTH_POPUP_ENABLED)
 installAuthOverlay(router)
 
 /**

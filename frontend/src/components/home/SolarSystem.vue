@@ -126,9 +126,14 @@ ${NOISE}
 void main() {
   vec3 V = normalize(cameraPosition - vWP);
   float facing = abs(dot(normalize(vWN), V));
-  float edge = 1.0 - facing;
-  // bright near the Sun, fading out well before the shell's own silhouette
-  float rim = pow(edge, 2.0) * (1.0 - smoothstep(0.55, 1.0, edge));
+  // How far the view ray passes from the Sun's centre, as a fraction of the shell's radius: a ray
+  // that passes at distance p meets the shell's normal at sin = p / R, so this is exact in
+  // perspective too. 0 = straight through the centre, 1 = grazing the shell's silhouette.
+  float d = sqrt(max(0.0, 1.0 - facing * facing));
+  const float LIMB = 1.0 / 2.1; // the Sun's own edge on that scale (shell radius = 2.1 Suns)
+  // bright right at the Sun's edge, falling to nothing at the shell's silhouette. (Keyed on 1 - facing
+  // it peaked near the silhouette instead, a detached ring at twice the Sun's radius.)
+  float rim = smoothstep(LIMB * 0.92, LIMB * 1.04, d) * pow(clamp((1.0 - d) / (1.0 - LIMB), 0.0, 1.0), 2.2) * 0.6;
   vec3 n = normalize(vN);
   float streak = fbm4(n * vec3(3.2, 6.0, 3.2) + vec3(uTime * 0.05, uTime * 0.07, -uTime * 0.04));
   float flicker = noise3(n * 16.0 + vec3(0.0, uTime * 0.4, 0.0));
@@ -1076,6 +1081,7 @@ function resize() {
   renderer.setSize(width, height, false)
   composer.setPixelRatio(dpr)
   composer.setSize(width, height)
+  bloom.enabled = !lowPower
   bloom.resolution.set(width, height)
   camera.aspect = width / height
   // The system fills the stage; the Sun sits a little below centre so the header stays clear.
@@ -1320,8 +1326,11 @@ function frame() {
   const dt = Math.min(0.05, real)
   if (!reducedMotion.value) advance(dt)
   updateCamera(Math.min(0.25, real))
-  if (lowPower) renderer.render(scene as THREE.Scene, camera as THREE.PerspectiveCamera)
-  else composer.render()
+  // low power still renders through the composer, only without the bloom pass: the output pass is
+  // what applies tone mapping and sRGB to the custom shaders. Rendering straight to the canvas
+  // skipped both, so after the step-down the Sun turned flat orange, lost its glow and the planets
+  // went dark.
+  composer.render()
   watchFrameTime(real)
   if (!ready.value) ready.value = true
   if (running()) raf = requestAnimationFrame(frame)
